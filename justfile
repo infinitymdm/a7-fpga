@@ -24,8 +24,8 @@ build-chipdb:
 
 # Synthesize and layout the design
 synth:
-	yosys -p "synth_xilinx -flatten -nowidelut -abc9 -arch xc7 -top top; write_json {{design}}.json" {{sources}}
-	nextpnr-xilinx --chipdb {{dev_model}}.bin --xdc constraints/arty.xdc --json {{design}}.json --write {{design}}_routed.json --fasm {{design}}.fasm
+	yosys -q -p "synth_xilinx -flatten -nowidelut -abc9 -arch xc7 -top top; write_json {{design}}.json" {{sources}}
+	nextpnr-xilinx -q --chipdb {{dev_model}}.bin --xdc constraints/arty.xdc --json {{design}}.json --write {{design}}_routed.json --fasm {{design}}.fasm
 	{{xray_utils_dir}}/fasm2frames.py --db-root {{xray_db_dir}}/{{dev_family}} --part {{dev_submodel}} {{design}}.fasm > {{design}}.frames
 	{{xray_tools_dir}}/xc7frames2bit --part_file {{xray_db_dir}}/{{dev_family}}/{{dev_submodel}}/part.yaml --part_name {{dev_submodel}} --frm_file {{design}}.frames --output_file {{design}}.bit
 
