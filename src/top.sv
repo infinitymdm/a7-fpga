@@ -5,6 +5,6 @@ module top
 	);
 
 	assign led[0] = sw[0] & sw[1];
-	assign led[4] = sw[2] | sw[3];
+	assign led[4] = sw[2] & sw[3];
 
 endmodule
