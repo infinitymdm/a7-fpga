@@ -28,3 +28,7 @@ synth:
 	nextpnr-xilinx --chipdb {{dev_model}}.bin --xdc constraints/arty.xdc --json {{design}}.json --write {{design}}_routed.json --fasm {{design}}.fasm
 	{{xray_utils_dir}}/fasm2frames.py --db-root {{xray_db_dir}}/{{dev_family}} --part {{dev_submodel}} {{design}}.fasm > {{design}}.frames
 	{{xray_tools_dir}}/xc7frames2bit --part_file {{xray_db_dir}}/{{dev_family}}/{{dev_submodel}}/part.yaml --part_name {{dev_submodel}} --frm_file {{design}}.frames --output_file {{design}}.bit
+
+# Upload the synthesized bitstream to the device
+upload:
+	openFPGALoader -b arty {{design}}.bit
