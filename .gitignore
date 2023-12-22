@@ -1,0 +1,7 @@
+# Ignored file extensions
+*.bba
+*.bin
+*.bit
+*.fasm
+*.frames
+*.json
