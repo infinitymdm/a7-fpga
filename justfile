@@ -1,32 +1,56 @@
-# Device information
-dev_family := "artix7"
-dev_model := "xc7a100t"
-dev_submodel := dev_model + "csg324-1"
+# Recipes for working with 🐧 hdl
+mod hdl
 
-# Project X-ray tools
-xray_dir := "../prjxray"
-xray_utils_dir := xray_dir + "/utils"
-xray_tools_dir := xray_dir + "/build/tools"
-xray_db_dir := xray_dir + "/database"
+# Device configuration
+dev_series  := "artix7"
+dev_model   := "xc7a100t"
+dev_part    := dev_model + "csg324-1"
+constraints := `find constraints -name "*.xdc" | tr '\n' ' '`
 
-# nextpnr-xilinx tools
-nextpnr_dir := "../nextpnr-xilinx"
+# paths
+synth_dir   := "synth"
+synth_name  := synth_dir + "/" + dev_part
+xray_db     := "/usr/share/xray/database"
+series_db   := xray_db + "/" + dev_series
+part_file   := series_db + "/" + dev_part + "/part.yaml"
+part_db     := "/usr/share/nextpnr/xilinx-chipdb/" + dev_part + ".bin"
+board_cfg   := "config/arty_a7.cfg"
 
-sources := `find src -name *.sv`
+_default:
+    @just --list
 
-build-chipdb: 
-    pypy3 {{nextpnr_dir}}/xilinx/python/bbaexport.py --device {{dev_submodel}} --bba {{dev_model}}.bba
-    bbasm --l {{dev_model}}.bba {{dev_model}}.bin
+_prep:
+    @mkdir -p {{synth_dir}}
 
-# Synthesize and layout the design
-synth top:
-    #! /usr/bin/env bash
-    XRAY_DATABASE={{dev_family}} XRAY_PART={{dev_submodel}} source {{xray_utils_dir}}/environment.sh
-    yosys -q -p "synth_xilinx -flatten -nowidelut -abc9 -arch xc7 -top {{top}}; write_json {{dev_model}}.json" {{sources}}
-    nextpnr-xilinx -q --chipdb {{dev_model}}.bin --xdc constraints/arty.xdc --json {{dev_model}}.json --write {{dev_model}}_routed.json --fasm {{dev_model}}.fasm
-    {{xray_utils_dir}}/fasm2frames.py --db-root {{xray_db_dir}}/{{dev_family}} --part {{dev_submodel}} {{dev_model}}.fasm > {{dev_model}}.frames
-    {{xray_tools_dir}}/xc7frames2bit --part_file {{xray_db_dir}}/{{dev_family}}/{{dev_submodel}}/part.yaml --part_name {{dev_submodel}} --frm_file {{dev_model}}.frames --output_file {{dev_model}}.bit
+# Clean up generated files
+clean:
+    @just hdl::clean
+    rm -rf {{synth_dir}}
 
-# Upload the synthesized bitstream to the device
-upload top: (synth top)
-    openFPGALoader -b arty {{dev_model}}.bit
+# Synthesize a design
+synth design *SV2V_FLAGS: _prep
+    @just hdl::preprocess {{design}} {{SV2V_FLAGS}} `find ~+/top -name {{design}}.sv`
+    yosys -q -p "synth_xilinx -flatten -nowidelut -abc9 -arch xc7 -top {{design}}; write_json {{synth_name}}_{{design}}.json" `find . -name "*.v" | tr '\n' ' '`
+
+# Place and route a design
+pnr design *SV2V_FLAGS: (synth design SV2V_FLAGS)
+    nextpnr-xilinx -q \
+        --chipdb {{part_db}} \
+        --xdc   {{constraints}} \
+        --json  {{synth_name}}_{{design}}.json \
+        --write {{synth_name}}_{{design}}_routed.json \
+        --fasm  {{synth_name}}_{{design}}.fasm
+    fasm2frames \
+        --db-root {{series_db}} \
+        --part {{dev_part}} \
+        {{synth_name}}_{{design}}.fasm > {{synth_name}}_{{design}}.frames
+    xc7frames2bit \
+        --part_file     {{part_file}} \
+        --part_name     {{dev_part}} \
+        --frm_file      {{synth_name}}_{{design}}.frames \
+        --output_file   {{synth_name}}_{{design}}.bit
+
+# Upload a synthesized bitstream to the device
+upload design *SV2V_FLAGS: (pnr design SV2V_FLAGS)
+    @# openFPGALoader -b arty {{synth_name}}_{{design}}.bit
+    openocd -f {{board_cfg}} -c "init;pld load 0 {{synth_name}}_{{design}}.bit;shutdown"
