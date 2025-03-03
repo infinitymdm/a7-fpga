@@ -1,10 +1,10 @@
 module top_test (
-    input  logic [3:0]  sw,
-    output logic [15:0] led
+    input  [3:0]  sw,
+    output [7:4]  ld,
 );
 
     always_comb begin
-        {led[12], led[8], led[4], led[0]} = sw;
+        ld[7:4] = sw;
     end
 
 endmodule
