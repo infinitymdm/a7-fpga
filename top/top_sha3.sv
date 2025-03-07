@@ -14,10 +14,27 @@ module top_sha3 (
             assign ld3[i] = sw[i] & btn[3];
             assign ld2[i] = sw[i] & btn[2];
             assign ld1[i] = sw[i] & btn[1];
-            assign ld0[i] = sw[i] & btn[0];
         end
     endgenerate
 
+    localparam D = 512;
+    localparam L = 6;
+    localparam S = 4;
+    localparam R = 1600 - 2*D;
+
+    logic [R-1:0] message_chunk;
+    logic [D-1:0] digest;
+    logic enable_sha;
+    logic uart_byte_ready;
+
+    // TODO: Figure out timing for this
+    keccak #(D, L, S) dut (
+        .clk(gclk), .reset(btn[0]), .enable(enable_sha),
+        .message(message_chunk), .digest
+    );
+
+    // Use UART to display the hashed value
+    // TODO: Use str.hextoa(i) to convert digest bytes to text
     uart_tx uart_simplex_tx (
         .clk(gclk),
         .data_ready(1'b1),
