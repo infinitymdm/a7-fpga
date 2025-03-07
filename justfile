@@ -30,7 +30,7 @@ clean:
 # Synthesize a design
 synth design *SV2V_FLAGS: _prep
     @just hdl::preprocess {{design}} {{SV2V_FLAGS}} `find ~+/top -name {{design}}.sv`
-    yosys -q -p "synth_xilinx -flatten -nowidelut -abc9 -arch xc7 -top {{design}}; write_json {{synth_name}}_{{design}}.json" `find . -name "*.v" | tr '\n' ' '`
+    yosys -q -p "synth_xilinx -nowidelut -abc9 -arch xc7 -top {{design}}; write_json {{synth_name}}_{{design}}.json" `find . -name "*.v" | tr '\n' ' '`
 
 # Place and route a design
 pnr design *SV2V_FLAGS: (synth design SV2V_FLAGS)

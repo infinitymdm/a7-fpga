@@ -2,8 +2,8 @@ module top_sha3 (
     input  logic       gclk,
     input  logic [3:0] sw,
     input  logic [3:0] btn,
-    input  logic       uart_tx,
-    output logic       uart_rx,
+    input  logic       uart_rx_in,
+    output logic       uart_tx_out,
     output logic [2:0] ld3, ld2, ld1, ld0,
     output logic [7:4] ld
 );
@@ -18,7 +18,14 @@ module top_sha3 (
         end
     endgenerate
 
-    always @(posedge gclk) uart_rx = uart_tx;
+    uart_tx uart_simplex_tx (
+        .clk(gclk),
+        .data_ready(1'b1),
+        .data(8'h2b), // ASCII "+"
+        .rx_ready(1'b1),
+        .tx_busy(),
+        .tx(uart_tx_out)
+    );
 
     // Goal: Test the SHA3 algorithm in hardware
     //  - Load a ROM with a message we want to hash (something we can easily check with openssl)
