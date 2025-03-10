@@ -52,5 +52,8 @@ pnr design *SV2V_FLAGS: (synth design SV2V_FLAGS)
 
 # Upload a synthesized bitstream to the device
 upload design *SV2V_FLAGS: (pnr design SV2V_FLAGS)
-    @# openFPGALoader -b arty {{synth_name}}_{{design}}.bit
     openocd -f {{board_cfg}} -c "init;pld load 0 {{synth_name}}_{{design}}.bit;shutdown"
+
+# Convert hexadecimal text file to binary
+hex2bin file:
+    cat {{file}} | sed 's/\([0-9A-F]\{2\}\)/\\\\\\x\1/gI' | xargs printf
