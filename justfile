@@ -1,6 +1,9 @@
 # Recipes for working with 🐧 hdl
 mod hdl
 
+# Recipes using Vivado flows
+mod vivado
+
 # Device configuration
 dev_series  := "artix7"
 dev_model   := "xc7a100t"

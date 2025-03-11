@@ -5,3 +5,6 @@
 *.fasm
 *.frames
 *.json
+
+# Ignored directories
+synth
