@@ -20,7 +20,7 @@ module top_sha3 (
     localparam message_file = "top/sha3_512_padded.bin";
     localparam chunk_count = 29; // = $ceil(8*(wc -c message_file)/R)
     localparam baud = 9600;
-    localparam gclk_freq = 1000000;
+    localparam gclk_freq = 100000000;
     localparam cycles_per_tx_bit = gclk_freq/baud;
 
     // Load test message into ROM

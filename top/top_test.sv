@@ -2,8 +2,8 @@ module top_test (
     input  logic       gclk,
     input  logic [3:0] sw,
     input  logic [3:0] btn,
-    input  logic       uart_tx,
-    output logic       uart_rx,
+    input  logic       uart_rx_in,
+    output logic       uart_tx_out,
     output logic [2:0] ld3, ld2, ld1, ld0,
     output logic [7:4] ld
 );
@@ -18,6 +18,7 @@ module top_test (
         end
     endgenerate
 
-    always @(posedge gclk) uart_rx = uart_tx;
+    // UART echo
+    always @(posedge gclk) uart_tx_out = uart_rx_in;
 
 endmodule

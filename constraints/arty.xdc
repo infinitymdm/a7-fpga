@@ -4,7 +4,7 @@
 
 # Clock signal
 set_property -dict { PACKAGE_PIN E3    IOSTANDARD LVCMOS33 } [get_ports { gclk }] # IO_L12P_T1_MRCC_35 Sch=gclk[100]
-create_clock -period 1000.00 -name sys_clk_pin -waveform {0 5} -add [get_ports { gclk }]
+create_clock -period 10.00 -name sys_clk_pin -waveform {0 5} -add [get_ports { gclk }]
 
 # Switches
 set_property -dict { PACKAGE_PIN A8    IOSTANDARD LVCMOS33 } [get_ports {sw[0]}] # IO_L12N_T1_MRCC_16    Sch=sw[0]
